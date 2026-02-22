@@ -1,9 +1,11 @@
+// app/page.tsx
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black" />
         
         <div className="relative max-w-6xl mx-auto px-4 py-24">
@@ -29,16 +31,18 @@ export default function Home() {
           {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <a 
-              href="#pricing" 
+              href="https://github.com/apps/mergeguard-ai/installations/new"
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-lg transition-all hover:scale-105 glow text-center"
             >
-              🚀 Start Free
+              🚀 Install GitHub App
             </a>
             <a 
-              href="#how-it-works" 
+              href="#pricing" 
               className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl font-semibold text-lg transition-all text-center"
             >
-              See How It Works
+              See Pricing
             </a>
           </div>
           
@@ -150,30 +154,47 @@ export default function Home() {
             <div className="glass rounded-2xl p-6">
               <h3 className="text-xl font-semibold mb-2">Free</h3>
               <div className="text-4xl font-bold mb-4">$0<span className="text-lg font-normal text-gray-400">/mo</span></div>
+              <p className="text-gray-400 text-sm mb-4">Perfect for trying out</p>
               <ul className="space-y-3 text-gray-400 mb-8 text-sm">
                 <li>✅ 10 verifications/month</li>
                 <li>✅ Basic test generation</li>
                 <li>✅ Security scan</li>
                 <li>✅ Debt score</li>
+                <li>❌ No API access</li>
               </ul>
-              <a href="#" className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all">
+              <a 
+                href="https://github.com/apps/mergeguard-ai/installations/new"
+                target="_blank"
+                className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all"
+              >
                 Get Started
               </a>
             </div>
             
             {/* Pro */}
             <div className="glass rounded-2xl p-6 relative" style={{ borderColor: 'rgba(37, 99, 235, 0.5)' }}>
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-500 rounded-full text-sm font-semibold">MOST POPULAR</div>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-500 rounded-full text-sm font-bold">
+                MOST POPULAR
+              </div>
               <h3 className="text-xl font-semibold mb-2">Pro</h3>
               <div className="text-4xl font-bold mb-4">$19<span className="text-lg font-normal text-gray-400">/dev/mo</span></div>
+              <p className="text-gray-400 text-sm mb-4">For professional developers</p>
               <ul className="space-y-3 text-gray-400 mb-8 text-sm">
                 <li>✅ 300 verifications/month</li>
                 <li>✅ 100k AI tokens</li>
                 <li>✅ Full verification suite</li>
                 <li>✅ Shareable reports</li>
                 <li>✅ Priority support</li>
+                <li>✅ Verified badge</li>
               </ul>
-              <a href="#" className="block w-full py-3 text-center bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all">
+              <a 
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert('Stripe checkout coming soon! Contact us at hello@mergeguard.ai');
+                }}
+                className="block w-full py-3 text-center bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all"
+              >
                 Start Pro
               </a>
             </div>
@@ -182,6 +203,7 @@ export default function Home() {
             <div className="glass rounded-2xl p-6">
               <h3 className="text-xl font-semibold mb-2">Team</h3>
               <div className="text-4xl font-bold mb-4">$99<span className="text-lg font-normal text-gray-400">/team/mo</span></div>
+              <p className="text-gray-400 text-sm mb-4">For small teams</p>
               <ul className="space-y-3 text-gray-400 mb-8 text-sm">
                 <li>✅ Up to 5 devs</li>
                 <li>✅ Unlimited verifications</li>
@@ -189,7 +211,14 @@ export default function Home() {
                 <li>✅ Team dashboard</li>
                 <li>✅ API access</li>
               </ul>
-              <a href="#" className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all">
+              <a 
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert('Stripe checkout coming soon! Contact us at hello@mergeguard.ai');
+                }}
+                className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all"
+              >
                 Start Team
               </a>
             </div>
@@ -198,6 +227,7 @@ export default function Home() {
             <div className="glass rounded-2xl p-6">
               <h3 className="text-xl font-semibold mb-2">Enterprise</h3>
               <div className="text-4xl font-bold mb-4">Custom</div>
+              <p className="text-gray-400 text-sm mb-4">For large organizations</p>
               <ul className="space-y-3 text-gray-400 mb-8 text-sm">
                 <li>✅ Self-hosting</li>
                 <li>✅ Private AI models</li>
@@ -205,7 +235,10 @@ export default function Home() {
                 <li>✅ 99.9% SLA</li>
                 <li>✅ Custom rules</li>
               </ul>
-              <a href="#" className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all">
+              <a 
+                href="mailto:hello@mergeguard.ai?subject=Enterprise%20Inquiry"
+                className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all"
+              >
                 Contact Sales
               </a>
             </div>
@@ -228,7 +261,15 @@ export default function Home() {
               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold shrink-0">1</div>
               <div>
                 <h3 className="text-xl font-semibold mb-2">Install GitHub App</h3>
-                <p className="text-gray-400">One-click install from GitHub Marketplace. Select your repositories.</p>
+                <p className="text-gray-400">
+                  <a 
+                    href="https://github.com/apps/mergeguard-ai/installations/new"
+                    target="_blank"
+                    className="text-blue-400 hover:underline"
+                  >
+                    Click here to install
+                  </a> from GitHub Marketplace. Select your repositories.
+                </p>
               </div>
             </div>
             
@@ -269,8 +310,12 @@ export default function Home() {
             Join 247+ developers already using MergeGuard.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-lg transition-all">
-              🚀 Start Free Forever
+            <a 
+              href="https://github.com/apps/mergeguard-ai/installations/new"
+              target="_blank"
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-lg transition-all"
+            >
+              🚀 Install GitHub App - Free
             </a>
           </div>
         </div>
@@ -285,9 +330,9 @@ export default function Home() {
           <div className="flex gap-6 text-gray-400">
             <a href="#" className="hover:text-white transition-all">Terms</a>
             <a href="#" className="hover:text-white transition-all">Privacy</a>
-            <a href="#" className="hover:text-white transition-all">Contact</a>
-            <a href="#" className="hover:text-white transition-all">Twitter</a>
-            <a href="#" className="hover:text-white transition-all">GitHub</a>
+            <a href="mailto:hello@mergeguard.ai" className="hover:text-white transition-all">Contact</a>
+            <a href="https://twitter.com" className="hover:text-white transition-all">Twitter</a>
+            <a href="https://github.com/Baki39/Mergeguard" className="hover:text-white transition-all">GitHub</a>
           </div>
           <div className="text-gray-500">
             © 2026 MergeGuard. All rights reserved.
