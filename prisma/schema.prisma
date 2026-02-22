@@ -1,0 +1,234 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ════════════════════════════════════════════════════════════════
+// USER & AUTH
+// ════════════════════════════════════════════════════════════════
+
+model User {
+  id        String  @id @default(cuid())
+  email     String  @unique
+  name      String?
+  avatarUrl String?
+
+  // GitHub
+  githubId    String? @unique
+  githubToken String?
+
+  // Stripe
+  stripeCustomerId   String?
+  subscriptionStatus SubscriptionStatus?
+
+  organizations Organization[]
+  projects      Project[]
+  reports       Report[]
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organizationMembers OrganizationMember[]
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+}
+
+// ════════════════════════════════════════════════════════════════
+// ORGANIZATION (Team)
+// ════════════════════════════════════════════════════════════════
+
+model Organization {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  // Settings
+  scoreThreshold Int     @default(95)
+  blockOnFail    Boolean @default(true)
+
+  // Billing
+  plan                 Plan @default(FREE)
+  monthlyVerifications Int  @default(0)
+  monthlyTokens        Int  @default(0)
+  tokenLimit           Int  @default(0)
+
+  // Relations
+  ownerId  String
+  owner    User                 @relation(fields: [ownerId], references: [id])
+  members  OrganizationMember[]
+  projects Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationMember {
+  id             String     @id @default(cuid())
+  organizationId String
+  userId         String
+  role           MemberRole @default(DEVELOPER)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  DEVELOPER
+  VIEWER
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+// ════════════════════════════════════════════════════════════════
+// PROJECT (Repository)
+// ════════════════════════════════════════════════════════════════
+
+model Project {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  // GitHub
+  githubRepoId  BigInt @unique
+  githubOwner   String
+  githubRepo    String
+  defaultBranch String @default("main")
+
+  // Settings
+  scoreThreshold Int     @default(95)
+  autoScan       Boolean @default(true)
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  ownerId        String
+  owner          User         @relation(fields: [ownerId], references: [id])
+  reports        Report[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([githubOwner, githubRepo])
+}
+
+// ════════════════════════════════════════════════════════════════
+// REPORT (PR Analysis)
+// ════════════════════════════════════════════════════════════════
+
+model Report {
+  id String @id @default(cuid())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  // GitHub PR Info
+  prNumber Int
+  prTitle  String?
+  prAuthor String?
+  prUrl    String?
+  baseSha  String?
+  headSha  String?
+
+  // Results
+  score  Int // 0-100
+  status ReportStatus @default(PENDING)
+
+  // Analysis
+  testsGenerated Int @default(0)
+  testsPassed    Int @default(0)
+  testsFailed    Int @default(0)
+
+  securityIssues SecurityIssue[]
+
+  debtScore Int @default(0)
+
+  // AI Analysis
+  humanSummary String?
+
+  // Timing
+  processingTime Int?
+  completedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  PASSED
+  FAILED
+  BLOCKED
+  ERROR
+}
+
+// ════════════════════════════════════════════════════════════════
+// SECURITY ISSUES
+// ════════════════════════════════════════════════════════════════
+
+model SecurityIssue {
+  id       String @id @default(cuid())
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id])
+
+  type        SecurityType
+  severity    SecuritySeverity
+  title       String
+  description String?
+  file        String?
+  line        Int?
+
+  status SecurityStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+}
+
+enum SecurityType {
+  XSS
+  SQL_INJECTION
+  PATH_TRAVERSAL
+  HARD_CREDENTIALS
+  AI_PROMPT_INJECTION
+  AI_DATA_LEAKAGE
+  DEPENDENCY_VULN
+  SAST
+  OTHER
+}
+
+enum SecuritySeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum SecurityStatus {
+  OPEN
+  CONFIRMED
+  FALSE_POSITIVE
+  FIXED
+  ACKNOWLEDGED
+}
