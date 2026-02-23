@@ -31,7 +31,7 @@ export default function Home() {
           {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <a 
-              href="https://github.com/apps/mergeguard-ai/installations/new"
+              href="https://github.com/apps/mergeguard/installations/new"
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-lg transition-all hover:scale-105 glow text-center"
@@ -156,14 +156,14 @@ export default function Home() {
               <div className="text-4xl font-bold mb-4">$0<span className="text-lg font-normal text-gray-400">/mo</span></div>
               <p className="text-gray-400 text-sm mb-4">Perfect for trying out</p>
               <ul className="space-y-3 text-gray-400 mb-8 text-sm">
-                <li>✅ 10 verifications/month</li>
+                <li>✅ 3 verifications/month</li>
                 <li>✅ Basic test generation</li>
                 <li>✅ Security scan</li>
                 <li>✅ Debt score</li>
                 <li>❌ No API access</li>
               </ul>
               <a 
-                href="https://github.com/apps/mergeguard-ai/installations/new"
+                href="https://github.com/apps/mergeguard/installations/new"
                 target="_blank"
                 className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all"
               >
@@ -263,7 +263,7 @@ export default function Home() {
                 <h3 className="text-xl font-semibold mb-2">Install GitHub App</h3>
                 <p className="text-gray-400">
                   <a 
-                    href="https://github.com/apps/mergeguard-ai/installations/new"
+                    href="https://github.com/apps/mergeguard/installations/new"
                     target="_blank"
                     className="text-blue-400 hover:underline"
                   >
@@ -311,7 +311,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
-              href="https://github.com/apps/mergeguard-ai/installations/new"
+              href="https://github.com/apps/mergeguard/installations/new"
               target="_blank"
               className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-lg transition-all"
             >
