@@ -2,6 +2,24 @@
 'use client';
 import Link from 'next/link';
 
+async function checkout(priceId: string) {
+  try {
+    const res = await fetch('/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Error: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Checkout error');
+  }
+}
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
@@ -188,16 +206,12 @@ export default function Home() {
                 <li>✅ Priority support</li>
                 <li>✅ Verified badge</li>
               </ul>
-              <a 
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert('Stripe checkout coming soon! Contact us at hello@mergeguard.ai');
-                }}
-                className="block w-full py-3 text-center bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all"
+              <button 
+                onClick={() => checkout('price_1T43tfIKwbq4qkQFq0osv8qZ')}
+                className="block w-full py-3 text-center bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all cursor-pointer"
               >
                 Start Pro
-              </a>
+              </button>
             </div>
             
             {/* Team */}
@@ -212,16 +226,12 @@ export default function Home() {
                 <li>✅ Team dashboard</li>
                 <li>✅ API access</li>
               </ul>
-              <a 
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert('Stripe checkout coming soon! Contact us at hello@mergeguard.ai');
-                }}
-                className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all"
+              <button 
+                onClick={() => checkout('price_1T43tsIKwbq4qkQFxNPNiWCj')}
+                className="block w-full py-3 text-center border border-white/20 rounded-xl hover:bg-white/10 transition-all cursor-pointer"
               >
                 Start Team
-              </a>
+              </button>
             </div>
             
             {/* Enterprise */}
