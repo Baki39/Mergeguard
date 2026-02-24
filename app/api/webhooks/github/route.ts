@@ -208,11 +208,28 @@ async function runAnalysis(
 function generatePRComment(result: {
   score: number;
   tests: { name: string }[];
-  securityIssues: { severity: string; title: string }[];
+  securityIssues: { severity: string; title: string; file?: string; line?: number; ruleId?: string; source: string }[];
   debtScore: number;
   summary: string;
+  analysisDetails?: { rulesChecked: number; aiAnalysis: boolean; staticAnalysis: boolean };
 }): string {
   const emoji = result.score >= 95 ? '✅' : '❌';
+  
+  // Group security issues by severity
+  const critical = result.securityIssues.filter(s => s.severity === 'CRITICAL');
+  const high = result.securityIssues.filter(s => s.severity === 'HIGH');
+  const medium = result.securityIssues.filter(s => s.severity === 'MEDIUM');
+  const low = result.securityIssues.filter(s => s.severity === 'LOW');
+  
+  let securitySection = '✅ No security issues found!';
+  if (result.securityIssues.length > 0) {
+    securitySection = [];
+    if (critical.length > 0) securitySection.push(`🚨 **CRITICAL (${critical.length})**:\n${critical.map(s => `- ${s.title}${s.ruleId ? ` [\`${s.ruleId}\`]` : ''}`).join('\n')}`);
+    if (high.length > 0) securitySection.push(`⚠️ **HIGH (${high.length})**:\n${high.map(s => `- ${s.title}${s.ruleId ? ` [\`${s.ruleId}\`]` : ''}`).join('\n')}`);
+    if (medium.length > 0) securitySection.push(`🔶 **MEDIUM (${medium.length})**:\n${medium.map(s => `- ${s.title}`).join('\n')}`);
+    if (low.length > 0) securitySection.push(`ℹ️ **LOW (${low.length})**:\n${low.map(s => `- ${s.title}`).join('\n')}`);
+    securitySection = securitySection.join('\n\n');
+  }
   
   return `
 ## 🛡️ MergeGuard Verification
@@ -220,20 +237,19 @@ function generatePRComment(result: {
 ${emoji} **Score: ${result.score}/100**
 
 ### 🧪 Tests Generated (${result.tests.length})
-${result.tests.slice(0, 5).map((t, i) => `${i + 1}. ${t.name}`).join('\n')}
-${result.tests.length > 5 ? `\n...and ${result.tests.length - 5} more` : ''}
+${result.tests.length > 0 
+  ? result.tests.slice(0, 8).map((t, i) => `${i + 1}. ${t.name}`).join('\n') + (result.tests.length > 8 ? `\n...and ${result.tests.length - 8} more` : '')
+  : '⚠️ No tests generated - manual review required'}
 
-### 🔒 Security Issues (${result.securityIssues.length})
-${result.securityIssues.length === 0 
-  ? '✅ No security issues found!' 
-  : result.securityIssues.map(s => `- **${s.severity}**: ${s.title}`).join('\n')}
+### 🔒 Security Analysis (${result.securityIssues.length} issues found)
+${securitySection}
 
 ### 📊 Technical Debt Score: ${result.debtScore}/100
 
-### 📋 Human Review Summary
+### 📋 Human Summary
 ${result.summary}
 
 ---
-*Verified by [MergeGuard](${process.env.APP_URL}) - Ship or Shipwreck*
+${result.analysisDetails ? `*Analyzed with ${result.analysisDetails.rulesChecked}+ security rules*` : '*Verified by [MergeGuard](https://mergeguard.ai) - Ship or Shipwreck*'}
 `;
 }

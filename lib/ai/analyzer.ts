@@ -1,4 +1,7 @@
 // lib/ai/analyzer.ts
+// Enhanced analyzer with rule-based + AI security scanning
+
+import { SECURITY_RULES, RULES_BY_SEVERITY } from './security-rules';
 
 interface AnalysisResult {
   score: number;
@@ -6,6 +9,11 @@ interface AnalysisResult {
   securityIssues: SecurityIssue[];
   debtScore: number;
   summary: string;
+  analysisDetails: {
+    rulesChecked: number;
+    aiAnalysis: boolean;
+    staticAnalysis: boolean;
+  };
 }
 
 interface Test {
@@ -21,32 +29,120 @@ interface SecurityIssue {
   description?: string;
   file?: string;
   line?: number;
+  ruleId?: string;
+  source: 'ai' | 'static';
 }
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY!;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 
 export async function analyzePR(diff: string): Promise<AnalysisResult> {
-  console.log('🤖 Starting AI analysis...');
+  console.log('🤖 Starting enhanced AI analysis...');
+  console.log(`📋 Total security rules loaded: ${SECURITY_RULES.length}`);
 
-  // Run analysis in parallel
-  const [tests, securityIssues, debtScore, summary] = await Promise.all([
+  // Run static analysis first (fast)
+  const staticSecurityIssues = runStaticAnalysis(diff);
+  console.log(`🔒 Static analysis found: ${staticSecurityIssues.length} issues`);
+
+  // Run AI analysis in parallel
+  const [tests, aiSecurityIssues, debtScore, summary] = await Promise.all([
     generateTests(diff),
-    analyzeSecurity(diff),
+    analyzeSecurityWithAI(diff),
     calculateDebtScore(diff),
     generateSummary(diff),
   ]);
 
+  // Combine security issues from both sources
+  const allSecurityIssues = [...staticSecurityIssues, ...aiSecurityIssues];
+  
+  // Remove duplicates
+  const uniqueSecurityIssues = removeDuplicates(allSecurityIssues);
+
   // Calculate overall score
-  const score = calculateScore(tests, securityIssues, debtScore);
+  const score = calculateScore(tests, uniqueSecurityIssues, debtScore);
+
+  console.log(`✅ Analysis complete: Score ${score}/100`);
+  console.log(`   - Tests: ${tests.length}`);
+  console.log(`   - Security Issues: ${uniqueSecurityIssues.length} (${uniqueSecurityIssues.filter(i => i.severity === 'CRITICAL').length} critical)`);
+  console.log(`   - Debt Score: ${debtScore}/100`);
 
   return {
     score,
     tests,
-    securityIssues,
+    securityIssues: uniqueSecurityIssues,
     debtScore,
     summary,
+    analysisDetails: {
+      rulesChecked: SECURITY_RULES.length,
+      aiAnalysis: true,
+      staticAnalysis: true,
+    },
   };
+}
+
+// Fast static analysis using regex patterns
+function runStaticAnalysis(diff: string): SecurityIssue[] {
+  const issues: SecurityIssue[] = [];
+  const lines = diff.split('\n');
+  
+  // Track file context
+  let currentFile = '';
+  
+  for (const line of lines) {
+    // Track file changes
+    const fileMatch = line.match(/^diff --git a\/(.+?) b\/(.+)/);
+    if (fileMatch) {
+      currentFile = fileMatch[1];
+      continue;
+    }
+    
+    // Track line numbers
+    const lineMatch = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+    const currentLine = lineMatch ? parseInt(lineMatch[1]) : 0;
+    
+    // Skip context lines
+    if (line.startsWith('---') || line.startsWith('+++') || line.startsWith('@@')) {
+      continue;
+    }
+    
+    // Get actual code line (remove diff prefixes)
+    const codeLine = line.replace(/^[+-]/, '');
+    
+    // Check against all rules
+    for (const rule of SECURITY_RULES) {
+      try {
+        if (rule.pattern.test(codeLine)) {
+          issues.push({
+            type: rule.id,
+            severity: rule.severity,
+            title: rule.name,
+            description: rule.description,
+            file: currentFile,
+            line: currentLine,
+            ruleId: rule.id,
+            source: 'static',
+          });
+        }
+      } catch (e) {
+        // Skip invalid regex
+      }
+    }
+  }
+  
+  return issues;
+}
+
+function removeDuplicates(issues: SecurityIssue[]): SecurityIssue[] {
+  const seen = new Map<string, SecurityIssue>();
+  
+  for (const issue of issues) {
+    const key = `${issue.type}-${issue.file}-${issue.line}`;
+    if (!seen.has(key)) {
+      seen.set(key, issue);
+    }
+  }
+  
+  return Array.from(seen.values());
 }
 
 async function generateTests(diff: string): Promise<Test[]> {
@@ -65,8 +161,10 @@ Generate 5-15 test cases that cover:
 
 For each test provide:
 - Test name (descriptive, in should/expect format)
-- Test code (runnable JavaScript/TypeScript)
+- Test code (runnable JavaScript/TypeScript with Jest/Vitest)
 - Type (unit/integration)
+
+IMPORTANT: Generate actual runnable test code that would work in a real project.
 
 Respond in this JSON format:
 {
@@ -110,8 +208,8 @@ Respond in this JSON format:
   ];
 }
 
-async function analyzeSecurity(diff: string): Promise<SecurityIssue[]> {
-  console.log('🔒 Analyzing security...');
+async function analyzeSecurityWithAI(diff: string): Promise<SecurityIssue[]> {
+  console.log('🔒 Analyzing security with AI...');
 
   const prompt = `You are a security expert. Analyze this code diff for security vulnerabilities.
 
@@ -128,13 +226,17 @@ Check for these common issues:
 7. Input validation
 8. Dependency vulnerabilities
 9. AI-specific prompt injection
-10. AI data leakage
+10. Deserialization issues
+11. XXE
+12. SSRF
+13. Insecure deserialization
+14. Using weak cryptography
 
 For each issue found, respond in JSON:
 {
   "issues": [
     {
-      "type": "SQL_INJECTION|XSS|HARD_CREDENTIALS|PATH_TRAVERSAL|CMD_INJECTION|AUTH_BYPASS|INPUT_VALIDATION|DEP_VULN|AI_PROMPT_INJECTION|AI_DATA_LEAKAGE",
+      "type": "SECURITY_ISSUE_TYPE",
       "severity": "CRITICAL|HIGH|MEDIUM|LOW|INFO",
       "title": "Short description",
       "description": "Longer explanation",
@@ -142,7 +244,9 @@ For each issue found, respond in JSON:
       "line": 123
     }
   ]
-}`;
+}
+
+Focus on issues not caught by static analysis. Look for complex vulnerabilities that require semantic understanding.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -155,7 +259,7 @@ For each issue found, respond in JSON:
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
-        system: 'You are a security expert. Analyze code for vulnerabilities.',
+        system: 'You are a security expert. Analyze code for vulnerabilities. Return valid JSON only.',
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -166,7 +270,10 @@ For each issue found, respond in JSON:
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
-      return parsed.issues || [];
+      return (parsed.issues || []).map((issue: any) => ({
+        ...issue,
+        source: 'ai' as const,
+      }));
     }
   } catch (error) {
     console.error('Security analysis failed:', error);
@@ -194,6 +301,8 @@ Rate the technical debt from 0-100 considering:
 - Magic numbers/strings
 - Hardcoded values
 - Missing tests
+- Large functions
+- Poor naming
 
 Respond in JSON:
 {
@@ -279,7 +388,7 @@ function calculateScore(
   if (tests.length < 5) score -= (5 - tests.length) * 3;
   if (tests.length < 10) score -= (10 - tests.length) * 2;
 
-  // Deduct for security issues
+  // Deduct for security issues (more aggressive)
   securityIssues.forEach((issue) => {
     switch (issue.severity) {
       case 'CRITICAL':
