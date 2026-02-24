@@ -1,0 +1,59 @@
+# MergeGuard GitLab CI/CD Template
+# Add to your .gitlab-ci.yml with: include: '/mergeguard.gitlab-ci.yml'
+
+.mergeguard_base:
+  image: node:20-alpine
+  stage: test
+  allow_failure: false
+  tags:
+    - docker
+
+mergeguard_security:
+  extends: .mergeguard_base
+  only:
+    - merge_requests
+  variables:
+    MERGEGUARD_API_URL: "https://mergeguard-temp.vercel.app/api/verify"
+  script:
+    - apk add --no-cache git
+    - |
+      echo "Installing MergeGuard..."
+      npm install -g @mergeguard/cli 2>/dev/null || npm install -g mergeguard-cli 2>/dev/null || true
+      
+      echo "Running MergeGuard security scan..."
+      mergeguard scan \
+        --pr $CI_MERGE_REQUEST_IID \
+        --repo $CI_PROJECT_PATH \
+        --token $GITLAB_TOKEN \
+        --api-url $MERGEGUARD_API_URL \
+        --api-key $MERGEGUARD_API_KEY \
+        --threshold 70
+    )
+  environment:
+    name: production
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Optional: MergeGuard on every push to main branch
+mergeguard_full_scan:
+  extends: .mergeguard_base
+  only:
+    - main
+    - master
+  variables:
+    MERGEGUARD_API_URL: "https://mergeguard-temp.vercel.app/api/verify"
+  script:
+    - apk add --no-cache git
+    - |
+      echo "Running full MergeGuard scan on main branch..."
+      npm install -g @mergeguard/cli 2>/dev/null || npm install -g mergeguard-cli 2>/dev/null || true
+      
+      mergeguard scan \
+        --branch $CI_COMMIT_REF_NAME \
+        --repo $CI_PROJECT_PATH \
+        --token $GITLAB_TOKEN \
+        --api-url $MERGEGUARD_API_URL \
+        --api-key $MERGEGUARD_API_KEY \
+        --full-scan
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
