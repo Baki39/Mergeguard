@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "MergeGuard - AI Code Guardian",
+  "version": "1.0.0",
+  "description": "AI-powered code verification for GitHub PRs, code review, and security scanning",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://github.com/*",
+        "https://gitlab.com/*",
+        "https://bitbucket.org/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://github.com/*",
+    "https://api.github.com/*",
+    "https://gitlab.com/*",
+    "https://api.gitlab.com/*",
+    "https://mergeguard-temp.vercel.app/*",
+    "https://*.vercel.app/*"
+  ],
+  "oauth2": {
+    "client_id": "your-github-oauth-client-id",
+    "scopes": ["repo", "read:user"]
+  }
+}

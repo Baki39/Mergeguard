@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MergeGuard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🛡️</div>
+        <span class="logo-text">MergeGuard</span>
+      </div>
+      <div class="status-badge" id="statusBadge">
+        <span class="status-dot"></span>
+        <span class="status-text">Ready</span>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Not Connected State -->
+      <div id="notConnected" class="state">
+        <div class="icon-large">🔗</div>
+        <h2>Connect to MergeGuard</h2>
+        <p>Sign in to start verifying your code</p>
+        <button class="btn btn-primary" id="connectBtn">
+          Connect GitHub Account
+        </button>
+      </div>
+
+      <!-- Connected State -->
+      <div id="connected" class="state hidden">
+        <!-- Current PR Info -->
+        <div id="prInfo" class="pr-info hidden">
+          <div class="pr-header">
+            <span class="pr-number" id="prNumber">#123</span>
+            <span class="pr-title" id="prTitle">Fix authentication bug</span>
+          </div>
+          <div class="pr-meta">
+            <span id="prRepo">owner/repo</span>
+            <span>•</span>
+            <span id="prAuthor">@username</span>
+          </div>
+        </div>
+
+        <!-- Score Display -->
+        <div id="scoreSection" class="score-section hidden">
+          <div class="score-circle" id="scoreCircle">
+            <span class="score-value" id="scoreValue">95</span>
+            <span class="score-label">/100</span>
+          </div>
+          <div class="score-status" id="scoreStatus">✅ Passing</div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions">
+          <button class="btn btn-primary" id="scanBtn">
+            <span class="btn-icon">🔍</span>
+            Scan Code
+          </button>
+          <button class="btn btn-secondary" id="viewReportBtn">
+            <span class="btn-icon">📊</span>
+            View Report
+          </button>
+        </div>
+
+        <!-- Results Preview -->
+        <div id="results" class="results hidden">
+          <div class="result-item">
+            <span class="result-icon">🧪</span>
+            <span class="result-label">Tests Generated</span>
+            <span class="result-value" id="testsCount">0</span>
+          </div>
+          <div class="result-item">
+            <span class="result-icon">🔒</span>
+            <span class="result-label">Security Issues</span>
+            <span class="result-value" id="securityCount">0</span>
+          </div>
+          <div class="result-item">
+            <span class="result-icon">📊</span>
+            <span class="result-label">Debt Score</span>
+            <span class="result-value" id="debtScore">0</span>
+          </div>
+        </div>
+
+        <!-- Processing State -->
+        <div id="processing" class="processing hidden">
+          <div class="spinner"></div>
+          <p>Analyzing code...</p>
+          <div class="progress-steps">
+            <div class="step" id="step1">
+              <span class="step-icon">🔒</span>
+              <span>Security Scan</span>
+            </div>
+            <div class="step" id="step2">
+              <span class="step-icon">🧪</span>
+              <span>Generating Tests</span>
+            </div>
+            <div class="step" id="step3">
+              <span class="step-icon">📊</span>
+              <span>Calculating Debt</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <a href="#" id="dashboardLink">Dashboard</a>
+      <span>•</span>
+      <a href="#" id="settingsLink">Settings</a>
+      <span>•</span>
+      <a href="#" id="logoutLink">Logout</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
